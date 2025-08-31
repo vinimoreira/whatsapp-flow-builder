@@ -26,6 +26,18 @@ npm run dev
 ```
 Abra a aplicação no endereço informado pelo Vite (ex.: http://localhost:5173).
 
+## 🌐 Demo (GitHub Pages)
+- Link público: https://vinimoreira.github.io/whatsapp-flow-builder/
+- O `vite.config.ts` já define `base: '/whatsapp-flow-builder/'` para funcionar em subcaminho do Pages.
+
+## 📦 Publicação no GitHub Pages
+- Opção 1 — GitHub Actions (recomendado):
+  - Em GitHub → Settings → Pages: em Build and deployment, escolha “GitHub Actions”.
+  - Use um workflow de deploy para publicar a pasta `dist` (build) no Pages.
+- Opção 2 — Branch `gh-pages`:
+  - Gere o build com `npm run build` e publique o conteúdo de `dist/` na branch `gh-pages`.
+  - Em Settings → Pages, selecione a branch `gh-pages`.
+
 ## 🧭 Como usar
 1) Arraste blocos da paleta (coluna esquerda) para o canvas.
 2) Conecte os blocos; dê duplo‑clique no rótulo da conexão para editar o label.
