@@ -18,10 +18,32 @@ import { v4 as uuid } from "uuid";
 import { useFlowStore } from "../store/useFlowStore";
 import { nodeTypes } from "./NodeTypes";
 import { DEFAULTS } from "../utils/defaults";
+import EdgeLabelInline from "./EdgeLabelInline";
+import { isFromCondition, isFromQuestion, labelIsBoolean, labelMatchesQuestionOptions } from "../utils/edgeHelpers";
 
 export default function FlowCanvas() {
   const reactFlow = useReactFlow();
-  const { nodes, edges, setNodes, setEdges } = useFlowStore();
+  const { nodes, edges, setNodes, setEdges, setSelectedEdgeId } = useFlowStore();
+
+  React.useEffect(() => {
+    try {
+      const raw = localStorage.getItem("flow-state");
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed?.nodes && parsed?.edges) {
+          setNodes(parsed.nodes);
+          setEdges(parsed.edges);
+        }
+      }
+    } catch {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  React.useEffect(() => {
+    try {
+      localStorage.setItem("flow-state", JSON.stringify({ nodes, edges }));
+    } catch {}
+  }, [nodes, edges]);
 
   const onDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -76,6 +98,7 @@ export default function FlowCanvas() {
         addEdge(
           {
             ...connection,
+            type: "smoothstep",
             label: condLabel,
             markerEnd: { type: MarkerType.ArrowClosed },
           },
@@ -86,15 +109,40 @@ export default function FlowCanvas() {
     [setEdges]
   );
 
+  const onSelectionChange = React.useCallback((params: { nodes: any[]; edges: any[] }) => {
+    const firstEdge = params.edges?.[0];
+    setSelectedEdgeId(firstEdge ? firstEdge.id : null);
+  }, [setSelectedEdgeId]);
+
   return (
     <div style={{ width: "100%", height: "100vh" }} onDragOver={onDragOver} onDrop={onDrop}>
       <ReactFlow
         nodes={nodes}
-        edges={edges}
+        edges={edges.map((e) => {
+          const sourceNode = nodes.find((n) => n.id === e.source);
+          const fromQuestion = isFromQuestion(sourceNode);
+          const fromCondition = isFromCondition(sourceNode);
+          const labelText = typeof e.label === "string" ? e.label : (e.label as any) ?? "next";
+          let warn = false;
+          if (fromQuestion) {
+            const options = (sourceNode?.data?.options ?? []) as Array<{ id: string; label: string }>;
+            warn = !labelMatchesQuestionOptions(labelText, options);
+          } else if (fromCondition) {
+            warn = !labelIsBoolean(labelText);
+          }
+          return {
+            ...e,
+            label: (
+              <EdgeLabelInline id={e.id} text={labelText} warning={warn} />
+            ),
+          };
+        })}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
         nodeTypes={nodeTypes}
+        onSelectionChange={onSelectionChange}
+        defaultEdgeOptions={{ type: "smoothstep", markerEnd: { type: MarkerType.ArrowClosed } }}
         fitView
       >
         <Background />
