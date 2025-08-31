@@ -23,7 +23,7 @@ import { isFromCondition, isFromQuestion, labelIsBoolean, labelMatchesQuestionOp
 
 export default function FlowCanvas() {
   const reactFlow = useReactFlow();
-  const { nodes, edges, setNodes, setEdges, setSelectedEdgeId } = useFlowStore();
+  const { nodes, edges, setNodes, setEdges, setSelected } = useFlowStore();
 
   React.useEffect(() => {
     try {
@@ -110,9 +110,11 @@ export default function FlowCanvas() {
   );
 
   const onSelectionChange = React.useCallback((params: { nodes: any[]; edges: any[] }) => {
+    const firstNode = params.nodes?.[0];
     const firstEdge = params.edges?.[0];
-    setSelectedEdgeId(firstEdge ? firstEdge.id : null);
-  }, [setSelectedEdgeId]);
+    const id = firstNode?.id ?? firstEdge?.id ?? null;
+    setSelected(id ?? null);
+  }, [setSelected]);
 
   return (
     <div style={{ width: "100%", height: "100vh" }} onDragOver={onDragOver} onDrop={onDrop}>

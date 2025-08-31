@@ -6,16 +6,17 @@ type FlowState = {
   edges: Edge[];
   setNodes: (updater: Node[] | ((prev: Node[]) => Node[])) => void;
   setEdges: (updater: Edge[] | ((prev: Edge[]) => Edge[])) => void;
-  selectedEdgeId: string | null;
-  setSelectedEdgeId: (id: string | null) => void;
+  selectedId: string | null;
+  setSelected: (id: string | null) => void;
   updateEdgeLabel: (edgeId: string, newLabel: string) => void;
+  updateNodeData: (nodeId: string, data: Record<string, any>) => void;
 };
 
 export const useFlowStore = create<FlowState>((set) => ({
   nodes: [],
   edges: [],
-  selectedEdgeId: null,
-  setSelectedEdgeId: (id) => set(() => ({ selectedEdgeId: id })),
+  selectedId: null,
+  setSelected: (id) => set(() => ({ selectedId: id })),
   setNodes: (updater) =>
     set((s) => ({ nodes: typeof updater === "function" ? (updater as any)(s.nodes) : updater })),
   setEdges: (updater) =>
@@ -23,5 +24,9 @@ export const useFlowStore = create<FlowState>((set) => ({
   updateEdgeLabel: (edgeId, newLabel) =>
     set((s) => ({
       edges: s.edges.map((e) => (e.id === edgeId ? { ...e, label: newLabel } : e)),
+    })),
+  updateNodeData: (nodeId, data) =>
+    set((s) => ({
+      nodes: s.nodes.map((n) => (n.id === nodeId ? { ...n, data: { ...(n.data || {}), ...data } } : n)),
     })),
 }));

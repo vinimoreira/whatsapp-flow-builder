@@ -1,4 +1,4 @@
-import type { Edge, Node } from "reactflow";
+import type { Node } from "reactflow";
 
 export function isFromQuestion(node?: Node | null) {
   return !!node && node.type === "question";
