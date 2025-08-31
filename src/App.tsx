@@ -4,13 +4,25 @@ import LeftPalette from "./flow/LeftPalette";
 import RightInspector from "./flow/RightInspector";
 import { useFlowStore } from "./store/useFlowStore";
 import { toExecutionJson } from "./flow/exporters/toExecutionJson";
+import { validateFlow } from "./flow/validators/validateFlow";
 
 function App() {
   const { saveFlow, loadFlow, autoSave, setAutoSave, nodes, edges } = useFlowStore();
   const [exportOpen, setExportOpen] = React.useState(false);
   const [exportText, setExportText] = React.useState<string>("");
 
+  const [validationOpen, setValidationOpen] = React.useState(false);
+  const [validationErrors, setValidationErrors] = React.useState<string[]>([]);
+  const [validationWarnings, setValidationWarnings] = React.useState<string[]>([]);
+
   const onExport = () => {
+    const res = validateFlow(nodes, edges);
+    setValidationErrors(res.errors);
+    setValidationWarnings(res.warnings);
+    if (!res.valid) {
+      setValidationOpen(true);
+      return;
+    }
     try {
       const obj = toExecutionJson(nodes, edges);
       const txt = JSON.stringify(obj, null, 2);
@@ -48,6 +60,39 @@ function App() {
               <button onClick={() => { navigator.clipboard?.writeText(exportText); }} style={btnPrimary}>Copiar</button>
               <button onClick={() => downloadJson(exportText)} style={{ ...btnPrimary, marginLeft: 8 }}>Baixar .json</button>
             </div>
+          </div>
+        </div>
+      )}
+      {validationOpen && (
+        <div style={modalBackdrop} onClick={() => setValidationOpen(false)}>
+          <div style={modalContent} onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+              <strong>Problemas de Validação</strong>
+              <button onClick={() => setValidationOpen(false)} style={btnPrimary}>Fechar</button>
+            </div>
+            {validationErrors.length > 0 && (
+              <div style={{ marginBottom: 8 }}>
+                <div style={{ fontWeight: 600, marginBottom: 4 }}>Erros</div>
+                <ul>
+                  {validationErrors.map((e, i) => (
+                    <li key={i} style={{ color: "#991B1B" }}>• {e}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {validationWarnings.length > 0 && (
+              <div>
+                <div style={{ fontWeight: 600, marginBottom: 4 }}>Avisos</div>
+                <ul>
+                  {validationWarnings.map((w, i) => (
+                    <li key={i} style={{ color: "#92400E" }}>• {w}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {validationErrors.length === 0 && (
+              <div style={{ color: "#065F46" }}>Sem erros. Você pode exportar agora.</div>
+            )}
           </div>
         </div>
       )}

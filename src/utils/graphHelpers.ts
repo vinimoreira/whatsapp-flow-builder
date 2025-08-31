@@ -66,3 +66,20 @@ export function sortTopologically(nodes: Node[], edges: Edge[]): Node[] {
   return result;
 }
 
+export function findReachableNodes(startId: string, edges: Edge[]): Set<string> {
+  const adj = new Map<string, string[]>();
+  for (const e of edges) {
+    if (!adj.has(e.source)) adj.set(e.source, []);
+    adj.get(e.source)!.push(e.target);
+  }
+  const visited = new Set<string>();
+  const stack: string[] = [startId];
+  while (stack.length) {
+    const id = stack.pop()!;
+    if (visited.has(id)) continue;
+    visited.add(id);
+    const outs = adj.get(id) || [];
+    for (const v of outs) if (!visited.has(v)) stack.push(v);
+  }
+  return visited;
+}
