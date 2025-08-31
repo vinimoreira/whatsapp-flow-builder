@@ -47,3 +47,28 @@ export const schemas = {
   api: apiSchema,
 };
 
+// ---- React Flow persistence schemas ----
+const positionSchema = z.object({ x: z.number(), y: z.number() });
+
+export const nodeSchema = z.object({
+  id: nonEmpty(),
+  type: nonEmpty(),
+  position: positionSchema,
+  data: z.record(z.string(), z.any()).optional(),
+});
+
+export const edgeSchema = z.object({
+  id: nonEmpty(),
+  source: nonEmpty(),
+  target: nonEmpty(),
+  sourceHandle: z.string().optional().nullable(),
+  targetHandle: z.string().optional().nullable(),
+  label: z.string().optional().nullable(),
+  type: z.string().optional(),
+});
+
+export const flowSchema = z.object({
+  version: z.number().optional(),
+  nodes: z.array(nodeSchema),
+  edges: z.array(edgeSchema),
+});

@@ -23,27 +23,16 @@ import { isFromCondition, isFromQuestion, labelIsBoolean, labelMatchesQuestionOp
 
 export default function FlowCanvas() {
   const reactFlow = useReactFlow();
-  const { nodes, edges, setNodes, setEdges, setSelected } = useFlowStore();
+  const { nodes, edges, setNodes, setEdges, setSelected, saveFlow, autoSave } = useFlowStore();
 
+  // Optional auto-save with debounce (~1s)
   React.useEffect(() => {
-    try {
-      const raw = localStorage.getItem("flow-state");
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        if (parsed?.nodes && parsed?.edges) {
-          setNodes(parsed.nodes);
-          setEdges(parsed.edges);
-        }
-      }
-    } catch {}
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  React.useEffect(() => {
-    try {
-      localStorage.setItem("flow-state", JSON.stringify({ nodes, edges }));
-    } catch {}
-  }, [nodes, edges]);
+    if (!autoSave) return;
+    const t = setTimeout(() => {
+      saveFlow();
+    }, 1000);
+    return () => clearTimeout(t);
+  }, [nodes, edges, autoSave, saveFlow]);
 
   const onDragOver = (e: React.DragEvent) => {
     e.preventDefault();
