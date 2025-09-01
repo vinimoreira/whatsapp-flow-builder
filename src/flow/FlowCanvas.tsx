@@ -23,7 +23,7 @@ import { isFromCondition, isFromQuestion, labelIsBoolean, labelMatchesQuestionOp
 
 export default function FlowCanvas() {
   const reactFlow = useReactFlow();
-  const { nodes, edges, setNodes, setEdges, setSelected, saveFlow, autoSave } = useFlowStore();
+  const { nodes, edges, setNodes, setEdges, setSelected, selectedId, saveFlow, autoSave } = useFlowStore();
 
   // Optional auto-save with debounce (~1s)
   React.useEffect(() => {
@@ -104,6 +104,34 @@ export default function FlowCanvas() {
     const id = firstNode?.id ?? firstEdge?.id ?? null;
     setSelected(id ?? null);
   }, [setSelected]);
+
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Delete" && selectedId) {
+        const isNode = nodes.some((n) => n.id === selectedId);
+        const isEdge = edges.some((ed) => ed.id === selectedId);
+        if (!isNode && !isEdge) return;
+        const msg = isNode
+          ? "Deseja excluir este componente?"
+          : "Deseja excluir esta ligação?";
+        if (window.confirm(msg)) {
+          if (isNode) {
+            setNodes((nds) => nds.filter((n) => n.id !== selectedId));
+            setEdges((eds) =>
+              eds.filter(
+                (e) => e.source !== selectedId && e.target !== selectedId
+              )
+            );
+          } else if (isEdge) {
+            setEdges((eds) => eds.filter((e) => e.id !== selectedId));
+          }
+          setSelected(null);
+        }
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [selectedId, nodes, edges, setNodes, setEdges, setSelected]);
 
   return (
     <div style={{ width: "100%", height: "100vh" }} onDragOver={onDragOver} onDrop={onDrop}>
