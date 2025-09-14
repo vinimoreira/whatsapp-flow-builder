@@ -1,12 +1,13 @@
 import { create } from "zustand";
-import type { Node, Edge } from "reactflow";
+import type { Edge } from "reactflow";
+import type { FlowNode } from "../types/flow";
 import { saveToLocalStorage, loadFromLocalStorage, clearLocalStorageKey } from "../utils/storage";
 import { flowSchema } from "../utils/schemas";
 
 type FlowState = {
-  nodes: Node[];
+  nodes: FlowNode[];
   edges: Edge[];
-  setNodes: (updater: Node[] | ((prev: Node[]) => Node[])) => void;
+  setNodes: (updater: FlowNode[] | ((prev: FlowNode[]) => FlowNode[])) => void;
   setEdges: (updater: Edge[] | ((prev: Edge[]) => Edge[])) => void;
   selectedId: string | null;
   setSelected: (id: string | null) => void;
@@ -49,7 +50,7 @@ export const useFlowStore = create<FlowState>((set) => ({
       clearLocalStorageKey("flow-builder-state");
       return { ok: false, message: "Dados inválidos no armazenamento. Chave limpa." };
     }
-    set(() => ({ nodes: parsed.data.nodes as Node[], edges: parsed.data.edges as Edge[] }));
+    set(() => ({ nodes: parsed.data.nodes as FlowNode[], edges: parsed.data.edges as Edge[] }));
     return { ok: true, message: "Fluxo carregado." };
   },
   autoSave: true,
