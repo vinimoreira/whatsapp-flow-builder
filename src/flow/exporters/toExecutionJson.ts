@@ -47,6 +47,23 @@ function buildStep(node: Node, edges: Edge[]): ExecStep {
     return { id: node.id, type: t };
   }
 
+  if (t === "endConversation" || t === "EndConversation") {
+    // Terminal step aligned with backend EndConversation (inherits BackgroundProcess fields)
+    const step: ExecStep = {
+      id: node.id,
+      type: "endConversation",
+      description: data.description ?? "",
+      subscriptionName: data.subscriptionName ?? "",
+      subscriptionTopicName: data.subscriptionTopicName ?? "",
+      topicName: data.topicName ?? "",
+      metadata: data.metadata ?? {},
+      requestContent: data.requestContent ?? {},
+      responseContent: data.responseContent ?? {},
+      startup: !!data.startup,
+    };
+    return step;
+  }
+
   if (t === "message") {
     const next = outgoing[0]?.target || undefined;
     const step: ExecStep = {
@@ -118,6 +135,24 @@ function buildStep(node: Node, edges: Edge[]): ExecStep {
     return step;
   }
 
+  if (t === "backgroundProcess" || t === "BackgroundProcess") {
+    const next = outgoing[0]?.target || undefined;
+    const step: ExecStep = {
+      id: node.id,
+      type: "backgroundProcess",
+      description: data.description ?? "",
+      subscriptionName: data.subscriptionName ?? "",
+      subscriptionTopicName: data.subscriptionTopicName ?? "",
+      topicName: data.topicName ?? "",
+      metadata: data.metadata ?? {},
+      requestContent: data.requestContent ?? {},
+      responseContent: data.responseContent ?? {},
+      startup: !!data.startup,
+    };
+    if (next) step.next = next;
+    return step;
+  }
+
   // default passthrough
   return { id: node.id, type: t } as ExecStep;
 }
@@ -130,4 +165,3 @@ function safeJsonParse(v: any): any {
     return undefined;
   }
 }
-

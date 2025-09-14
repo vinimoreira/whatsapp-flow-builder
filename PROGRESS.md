@@ -19,19 +19,19 @@ Este arquivo acompanha o progresso do desenvolvimento do construtor de fluxo.
 
 ## Épico 2: Interface Visual e Canvas (Estilo Typebot)
 
-*   [ ] ⚪️ **01-criar-layout-typebot.md**
-*   [ ] ⚪️ **02-implementar-barra-acoes.md**
-*   [ ] ⚪️ **03-renderizar-canvas-reactflow.md**
+*   [x] 🟢 **01-criar-layout-typebot.md**
+*   [x] 🟢 **02-implementar-barra-acoes.md**
+*   [x] 🟢 **03-renderizar-canvas-reactflow.md**
 
 ## Épico 3: Paleta de Nós e Nós Customizados (Estilo Bolha de Chat)
 
-*   [ ] ⚪️ **01-criar-no-texto.md**
+*   [x] 🟢 **01-criar-no-texto.md**
 *   [ ] ⚪️ **02-criar-no-opcoes.md**
 *   [ ] ⚪️ **03-criar-no-processo-segundo-plano.md**
 *   [ ] ⚪️ **04-criar-no-redirecionamento.md**
 *   [ ] ⚪️ **05-criar-no-ticket-suporte.md**
 *   [ ] ⚪️ **06-criar-no-encerrar-conversa.md**
-*   [ ] ⚪️ **07-criar-no-proxy.md**
+*   [x] 🟢 **07-criar-no-proxy.md**
 
 ## Épico 4: Edição "In-place" de Propriedades
 
@@ -48,3 +48,5 @@ Este arquivo acompanha o progresso do desenvolvimento do construtor de fluxo.
 
 *   [ ] ⚪️ **01-implementar-funcao-exportacao.md**
 *   [ ] ⚪️ **02-adicionar-botao-exportar.md**
+
+Ao concluir cada uma das etapas marque como concluido nesse arquivo e espera a validação do usuário.

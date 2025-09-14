@@ -1,5 +1,12 @@
 // src/flow/NodeTypes.tsx
 import { Handle, Position } from "reactflow";
+import TextNode from "./nodes/TextNode";
+import OptionsNode from "./nodes/OptionsNode";
+import BackgroundProcessNode from "./nodes/BackgroundProcessNode";
+import RedirectNode from "./nodes/RedirectNode";
+import SupportTicketNode from "./nodes/SupportTicketNode";
+import EndConversationNode from "./nodes/EndConversationNode";
+import ProxyNode from "./nodes/ProxyNode";
 
 function Header({ icon, title, color, badge }: { icon: string; title: string; color: string; badge?: string }) {
   return (
@@ -187,6 +194,20 @@ export const EndNode = ({ data }: any) => (
 
 // ---------- Export all nodeTypes ----------
 export const nodeTypes = {
+  text: TextNode,
+  Text: TextNode,
+  options: OptionsNode,
+  Options: OptionsNode,
+  backgroundProcess: BackgroundProcessNode,
+  BackgroundProcess: BackgroundProcessNode,
+  redirect: RedirectNode,
+  Redirect: RedirectNode,
+  supportTicket: SupportTicketNode,
+  SupportTicket: SupportTicketNode,
+  endConversation: EndConversationNode,
+  EndConversation: EndConversationNode,
+  proxy: ProxyNode,
+  Proxy: ProxyNode,
   start: StartNode,
   message: MessageNode,
   question: QuestionNode,

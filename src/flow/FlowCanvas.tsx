@@ -13,16 +13,12 @@ import ReactFlow, {
   MarkerType,
 } from "reactflow";
 import "reactflow/dist/style.css";
-import { useReactFlow } from "reactflow";
-import { v4 as uuid } from "uuid";
 import { useFlowStore } from "../store/useFlowStore";
 import { nodeTypes } from "./NodeTypes";
-import { DEFAULTS } from "../utils/defaults";
 import EdgeLabelInline from "./EdgeLabelInline";
 import { isFromCondition, isFromQuestion, labelIsBoolean, labelMatchesQuestionOptions } from "../utils/edgeHelpers";
 
 export default function FlowCanvas() {
-  const reactFlow = useReactFlow();
   const { nodes, edges, setNodes, setEdges, setSelected, saveFlow, autoSave } = useFlowStore();
 
   // Optional auto-save with debounce (~1s)
@@ -34,35 +30,7 @@ export default function FlowCanvas() {
     return () => clearTimeout(t);
   }, [nodes, edges, autoSave, saveFlow]);
 
-  const onDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = "move";
-  };
-
-  const onDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    const type = e.dataTransfer.getData("application/reactflow");
-    if (!type) return;
-
-    // (Opcional) bloqueia múltiplos starts
-    if (type === "start" && nodes.some(n => n.type === "start")) return;
-
-    const bounds = (e.target as HTMLDivElement).getBoundingClientRect();
-    const position = reactFlow.project({
-      x: e.clientX - bounds.left,
-      y: e.clientY - bounds.top,
-    });
-
-    const id = uuid();
-    const node = {
-      id,
-      type,
-      position,
-      data: { ...(DEFAULTS[type] || { title: type }) },
-    };
-
-    setNodes((nds) => nds.concat(node));
-  };
+  // Removido suporte a drag-and-drop; adição será por menu contextual
 
   const onNodesChange = React.useCallback(
     (changes: NodeChange[]) => {
@@ -106,7 +74,7 @@ export default function FlowCanvas() {
   }, [setSelected]);
 
   return (
-    <div style={{ width: "100%", height: "100vh" }} onDragOver={onDragOver} onDrop={onDrop}>
+    <div style={{ width: "100%", height: "100%" }}>
       <ReactFlow
         nodes={nodes}
         edges={edges.map((e) => {

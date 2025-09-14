@@ -17,9 +17,9 @@ export function validateFlow(nodes: Node[], edges: Edge[]): Result {
   const start = findStartNode(nodes);
   if (start) {
     const reachable = findReachableNodes(start.id, edges);
-    const endReachable = nodes.some((n) => n.type === "end" && reachable.has(n.id));
+    const endReachable = nodes.some((n) => (n.type === "end" || n.type === "endConversation" || n.type === "EndConversation") && reachable.has(n.id));
     if (!endReachable) {
-      errors.push("Pelo menos um End deve ser alcançável a partir do Start.");
+      errors.push("Pelo menos um End/EndConversation deve ser alcançável a partir do Start.");
     }
   }
 
@@ -153,4 +153,3 @@ function findCycles(nodes: Node[], edges: Edge[]): string[][] {
   }
   return cycles;
 }
-
