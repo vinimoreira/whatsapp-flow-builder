@@ -1,11 +1,13 @@
-// LeftPalette.tsx
+// LeftPalette.tsx — apenas tipos suportados pelo backend/exemplo inicial
 const PALETTE = [
   { type: "start", label: "Start" },
-  { type: "message", label: "Message" },
-  { type: "question", label: "Question" },
-  { type: "condition", label: "Condition" },
-  { type: "delay", label: "Delay" },
-  { type: "api", label: "API" },
+  { type: "text", label: "Texto" },
+  { type: "options", label: "Opções" },
+  { type: "backgroundProcess", label: "Processo" },
+  { type: "redirect", label: "Redirecionar" },
+  { type: "supportTicket", label: "Ticket" },
+  { type: "endConversation", label: "Encerrar Conversa" },
+  { type: "proxy", label: "Proxy" },
   { type: "end", label: "End" },
 ];
 
@@ -17,13 +19,13 @@ export default function LeftPalette() {
 
   return (
     <aside style={{ width: 220, borderRight: "1px solid #eee", padding: 12 }}>
-      <h4 style={{ marginBottom: 8 }}>Blocks</h4>
+      <h4 style={{ marginBottom: 8 }}>Componentes</h4>
       {PALETTE.map((item) => (
         <div
           key={item.type}
           draggable
           onDragStart={(e) => onDragStart(e, item.type)}
-          style={{ padding: 8, marginBottom: 8, border: "1px dashed #aaa", borderRadius: 8, cursor: "grab" }}
+          style={{ padding: 8, marginBottom: 8, border: "1px dashed #aaa", borderRadius: 8, cursor: "grab", background: "#fff" }}
         >
           {item.label}
         </div>

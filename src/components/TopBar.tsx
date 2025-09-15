@@ -39,18 +39,13 @@ export default function TopBar() {
       nodes: [
         { id: "start-1", type: "start", position: { x: 80, y: 160 }, data: { title: "Start" } },
         { id: "text-1", type: "text", position: { x: 260, y: 160 }, data: { title: "Texto", description: "Olá! Eu sou seu assistente 🤖. Como posso ajudar?" } },
-        { id: "options-1", type: "options", position: { x: 480, y: 160 }, data: { title: "Opções", options: [ { id: "opt1", label: "Informações" }, { id: "opt2", label: "Falar com suporte" } ] } },
-        { id: "bg-1", type: "backgroundProcess", position: { x: 720, y: 80 }, data: { title: "Processo", description: "Executa em segundo plano", subscriptionName: "", subscriptionTopicName: "", topicName: "", metadata: {}, requestContent: {}, responseContent: {}, startup: false } },
-        { id: "redirect-1", type: "redirect", position: { x: 940, y: 80 }, data: { title: "Redirecionar", flowId: "outro-fluxo" } },
-        { id: "proxy-1", type: "proxy", position: { x: 1160, y: 80 }, data: { title: "Proxy", endpoint: "https://proxy.seuservico.com/rota", method: "POST" } },
-        { id: "support-1", type: "supportTicket", position: { x: 720, y: 240 }, data: { title: "Ticket de Suporte", department: "Atendimento", priority: "Alta" } },
-        { id: "message-1", type: "message", position: { x: 1380, y: 80 }, data: { title: "Message", text: "Aqui estão mais detalhes…" } },
-        { id: "question-1", type: "question", position: { x: 1600, y: 80 }, data: { title: "Question", prompt: "Está tudo certo?", options: [ { id: "yes", label: "Sim" }, { id: "no", label: "Não" } ] } },
-        { id: "condition-1", type: "condition", position: { x: 1820, y: 80 }, data: { title: "Condition", expression: "ctx.ok === true" } },
-        { id: "delay-1", type: "delay", position: { x: 2040, y: 30 }, data: { title: "Delay", ms: 1000 } },
-        { id: "api-1", type: "api", position: { x: 2260, y: 30 }, data: { title: "API", url: "https://api.example.com", method: "GET" } },
-        { id: "endconv-1", type: "endConversation", position: { x: 2480, y: 30 }, data: { title: "Encerrar Conversa", description: "", subscriptionName: "", subscriptionTopicName: "", topicName: "", metadata: {}, requestContent: {}, responseContent: {}, startup: false } },
-        { id: "end-1", type: "end", position: { x: 2040, y: 140 }, data: { title: "End" } },
+        { id: "options-1", type: "options", position: { x: 480, y: 160 }, data: { title: "Opções", options: [ { id: "opt1", label: "Informações" }, { id: "opt2", label: "Falar com suporte" }, { id: "opt3", label: "Ir para outro fluxo" } ] } },
+        { id: "bg-1", type: "backgroundProcess", position: { x: 760, y: 100 }, data: { title: "Processo", description: "Executa em segundo plano", subscriptionName: "", subscriptionTopicName: "", topicName: "", metadata: {}, requestContent: {}, responseContent: {}, startup: false } },
+        { id: "proxy-1", type: "proxy", position: { x: 980, y: 100 }, data: { title: "Proxy", endpoint: "https://proxy.seuservico.com/rota", method: "POST" } },
+        { id: "endconv-1", type: "endConversation", position: { x: 1200, y: 100 }, data: { title: "Encerrar Conversa", description: "", subscriptionName: "", subscriptionTopicName: "", topicName: "", metadata: {}, requestContent: {}, responseContent: {}, startup: false } },
+        { id: "support-1", type: "supportTicket", position: { x: 760, y: 240 }, data: { title: "Ticket de Suporte", department: "Atendimento", priority: "Alta" } },
+        { id: "redirect-1", type: "redirect", position: { x: 760, y: 20 }, data: { title: "Redirecionar", flowId: "outro-fluxo" } },
+        { id: "end-1", type: "end", position: { x: 980, y: 240 }, data: { title: "End" } },
       ],
       edges: [
         { id: "e-start-text", source: "start-1", target: "text-1", label: "next", type: "smoothstep" },
@@ -58,20 +53,12 @@ export default function TopBar() {
         // Opções: cada aresta deve usar o id da opção
         { id: "e-options-bg", source: "options-1", target: "bg-1", label: "opt1", type: "smoothstep" },
         { id: "e-options-support", source: "options-1", target: "support-1", label: "opt2", type: "smoothstep" },
-        // Caminho principal via bg -> redirect -> proxy -> message -> question -> condition
-        { id: "e-bg-redirect", source: "bg-1", target: "redirect-1", label: "next", type: "smoothstep" },
-        { id: "e-redirect-proxy", source: "redirect-1", target: "proxy-1", label: "next", type: "smoothstep" },
-        { id: "e-proxy-message", source: "proxy-1", target: "message-1", label: "next", type: "smoothstep" },
-        { id: "e-message-question", source: "message-1", target: "question-1", label: "next", type: "smoothstep" },
-        { id: "e-support-message", source: "support-1", target: "message-1", label: "next", type: "smoothstep" },
-        // Da pergunta para condição: use labels iguais às opções (Sim/Não)
-        { id: "e-question-condition-yes", source: "question-1", target: "condition-1", label: "Sim", type: "smoothstep" },
-        { id: "e-question-condition-no", source: "question-1", target: "condition-1", label: "Não", type: "smoothstep" },
-        // Condition com dois ramos: true -> delay -> api -> endConversation ; false -> end
-        { id: "e-cond-delay", source: "condition-1", sourceHandle: "true", target: "delay-1", label: "true", type: "smoothstep" },
-        { id: "e-delay-api", source: "delay-1", target: "api-1", label: "next", type: "smoothstep" },
-        { id: "e-api-endconv", source: "api-1", target: "endconv-1", label: "next", type: "smoothstep" },
-        { id: "e-cond-end", source: "condition-1", sourceHandle: "false", target: "end-1", label: "false", type: "smoothstep" },
+        { id: "e-options-redirect", source: "options-1", target: "redirect-1", label: "opt3", type: "smoothstep" },
+        // Caminho principal via bg -> proxy -> endConversation
+        { id: "e-bg-proxy", source: "bg-1", target: "proxy-1", label: "next", type: "smoothstep" },
+        { id: "e-proxy-endconv", source: "proxy-1", target: "endconv-1", label: "next", type: "smoothstep" },
+        // Suporte leva a um encerramento normal
+        { id: "e-support-end", source: "support-1", target: "end-1", label: "next", type: "smoothstep" },
       ],
     };
     return JSON.stringify(payload, null, 2);
@@ -105,6 +92,7 @@ export default function TopBar() {
   return (
     <>
       <div style={{ display: "flex", alignItems: "center", gap: 8, padding: 8, borderBottom: "1px solid #eee" }}>
+        <button onClick={() => { if (confirm("Iniciar um novo fluxo? Isso limpará nós e conexões.")) { setNodes([] as any); setEdges([] as any); } }} style={btnPrimary}>🆕 Novo</button>
         <button onClick={() => { saveFlow(); alert("Fluxo salvo."); }} style={btnPrimary}>💾 Salvar</button>
         <button onClick={() => { const res = loadFlow(); alert(res.message); }} style={btnPrimary}>📂 Carregar</button>
         <button onClick={onExport} style={btnPrimary}>📤 Exportar JSON</button>

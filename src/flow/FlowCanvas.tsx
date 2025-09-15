@@ -11,6 +11,7 @@ import ReactFlow, {
   type EdgeChange,
   type Connection,
   MarkerType,
+  useReactFlow,
 } from "reactflow";
 import "reactflow/dist/style.css";
 import { useFlowStore } from "../store/useFlowStore";
@@ -19,7 +20,9 @@ import EdgeLabelInline from "./EdgeLabelInline";
 import { isFromCondition, isFromQuestion, labelIsBoolean, labelMatchesQuestionOptions } from "../utils/edgeHelpers";
 
 export default function FlowCanvas() {
-  const { nodes, edges, setNodes, setEdges, setSelected, saveFlow, autoSave } = useFlowStore();
+  const { nodes, edges, setNodes, setEdges, setSelected, saveFlow, autoSave, selectedId } = useFlowStore();
+  const rf = useReactFlow();
+  const wrapperRef = React.useRef<HTMLDivElement | null>(null);
 
   // Optional auto-save with debounce (~1s)
   React.useEffect(() => {
@@ -73,8 +76,73 @@ export default function FlowCanvas() {
     setSelected(id ?? null);
   }, [setSelected]);
 
+  // Delete selected edge with Delete/Backspace (with confirmation)
+  React.useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Delete" && e.key !== "Backspace") return;
+      const edge = edges.find((ed) => ed.id === selectedId);
+      const node = nodes.find((nd) => nd.id === selectedId);
+      if (!edge && !node) return;
+      e.preventDefault();
+      if (edge) {
+        const ok = confirm("Remover esta conexão? Esta ação não pode ser desfeita.");
+        if (!ok) return;
+        setEdges((prev: any) => prev.filter((ed: any) => ed.id !== edge.id));
+        return;
+      }
+      if (node) {
+        const connected = edges.filter((ed) => ed.source === node.id || ed.target === node.id).length;
+        const ok = confirm(
+          connected > 0
+            ? `Remover o nó "${node.data?.title || node.type}" e ${connected} conexão(ões) ligada(s) a ele?`
+            : `Remover o nó "${node.data?.title || node.type}"?`
+        );
+        if (!ok) return;
+        setNodes((prev: any[]) => prev.filter((n) => n.id !== node.id));
+        setEdges((prev: any[]) => prev.filter((ed) => ed.source !== node.id && ed.target !== node.id));
+        setSelected(null);
+        return;
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [edges, nodes, selectedId, setEdges, setNodes, setSelected]);
+
+  const onDragOver = React.useCallback((event: React.DragEvent) => {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "move";
+  }, []);
+
+  const onDrop = React.useCallback((event: React.DragEvent) => {
+    event.preventDefault();
+    const type = event.dataTransfer.getData("application/reactflow");
+    if (!type) return;
+    const bounds = wrapperRef.current?.getBoundingClientRect();
+    if (!bounds) return;
+    const position = rf.project({ x: event.clientX - bounds.left, y: event.clientY - bounds.top });
+    const id = `${type}-${Date.now()}`;
+    const defaults: Record<string, any> = {
+      start: { title: "Start" },
+      end: { title: "End" },
+      message: { title: "Message", text: "" },
+      question: { title: "Question", prompt: "Pergunta?", options: [{ id: "yes", label: "Sim" }, { id: "no", label: "Não" }] },
+      condition: { title: "Condition", expression: "ctx.ok === true" },
+      delay: { title: "Delay", ms: 1000 },
+      api: { title: "API", url: "https://api.example.com", method: "GET" },
+      text: { title: "Texto", description: "" },
+      options: { title: "Opções", options: [{ id: "opt1", label: "Opção 1" }] },
+      backgroundProcess: { title: "Processo", description: "" },
+      proxy: { title: "Proxy", endpoint: "", method: "GET" },
+      supportTicket: { title: "Ticket de Suporte", department: "", priority: "" },
+      redirect: { title: "Redirecionar", flowId: "" },
+      endConversation: { title: "Encerrar Conversa" },
+    };
+    const data = (defaults as any)[type] || { title: type };
+    setNodes((prev: any[]) => [...prev, { id, type, position, data }]);
+  }, [rf, setNodes]);
+
   return (
-    <div style={{ width: "100%", height: "100%" }}>
+    <div ref={wrapperRef} style={{ width: "100%", height: "100%" }} onDrop={onDrop} onDragOver={onDragOver}>
       <ReactFlow
         nodes={nodes}
         edges={edges.map((e) => {

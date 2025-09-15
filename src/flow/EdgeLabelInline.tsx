@@ -159,6 +159,18 @@ export default function EdgeLabelInline({ id, text, warning }: Props) {
       >
         +
       </button>
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          const ok = confirm("Remover esta conexão? Esta ação não pode ser desfeita.");
+          if (!ok) return;
+          setEdges((prev: any) => prev.filter((ed: any) => ed.id !== id));
+        }}
+        title="Remover conexão"
+        style={{ fontSize: 12, padding: "2px 6px", borderRadius: 6, border: "1px solid #ef4444", background: "#fff", color: "#ef4444", cursor: "pointer" }}
+      >
+        🗑
+      </button>
       {menuOpen && (
         <div
           onClick={(e) => e.stopPropagation()}
