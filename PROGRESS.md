@@ -37,7 +37,7 @@ Este arquivo acompanha o progresso do desenvolvimento do construtor de fluxo.
 
 *   [x] 🟢 **01-implementar-edicao-no-texto.md**
 *   [x] 🟢 **02-implementar-edicao-no-opcoes.md**
-*   [ ] ⚪️ **03-implementar-edicao-outros-nos.md**
+*   [x] 🟢 **03-implementar-edicao-outros-nos.md**
 
 ## Épico 5: Menu de Adição Contextual e Conexões
 

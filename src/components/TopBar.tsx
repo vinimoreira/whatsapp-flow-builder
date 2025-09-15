@@ -64,9 +64,9 @@ export default function TopBar() {
         { id: "e-proxy-message", source: "proxy-1", target: "message-1", label: "next", type: "smoothstep" },
         { id: "e-message-question", source: "message-1", target: "question-1", label: "next", type: "smoothstep" },
         { id: "e-support-message", source: "support-1", target: "message-1", label: "next", type: "smoothstep" },
-        // Da pergunta para condição: cada aresta usa ids yes/no
-        { id: "e-question-condition-yes", source: "question-1", target: "condition-1", label: "yes", type: "smoothstep" },
-        { id: "e-question-condition-no", source: "question-1", target: "condition-1", label: "no", type: "smoothstep" },
+        // Da pergunta para condição: use labels iguais às opções (Sim/Não)
+        { id: "e-question-condition-yes", source: "question-1", target: "condition-1", label: "Sim", type: "smoothstep" },
+        { id: "e-question-condition-no", source: "question-1", target: "condition-1", label: "Não", type: "smoothstep" },
         // Condition com dois ramos: true -> delay -> api -> endConversation ; false -> end
         { id: "e-cond-delay", source: "condition-1", sourceHandle: "true", target: "delay-1", label: "true", type: "smoothstep" },
         { id: "e-delay-api", source: "delay-1", target: "api-1", label: "next", type: "smoothstep" },
