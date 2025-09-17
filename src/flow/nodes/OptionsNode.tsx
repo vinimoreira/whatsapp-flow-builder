@@ -61,7 +61,7 @@ export default function OptionsNode({ id, data }: any) {
             <div style={{ fontSize: 12, color: "#6b7280" }}>Sem opções definidas</div>
           )}
           {(!options || options.length === 0) && isEditing && (
-            <button onClick={() => setOptions([{ id: `${Date.now()}`, label: "Opção" }])} style={primaryBtn}>Adicionar opção</button>
+            <button onClick={() => setOptions([{ id: `${Date.now()}`, label: "" }])} style={primaryBtn}>Adicionar opção</button>
           )}
           {options.map((opt: Option, idx: number) => (
             <div key={opt.id || idx} style={{ position: "relative", padding: "6px 8px", border: "1px solid #e5e7eb", borderRadius: 8, background: "#f9fafb", display: "flex", alignItems: "center", gap: 8 }}>
@@ -70,6 +70,7 @@ export default function OptionsNode({ id, data }: any) {
               ) : (
                 <input
                   value={opt.label}
+                  placeholder="Escreva a opção..."
                   onChange={(e) => {
                     const next = options.slice();
                     next[idx] = { ...opt, label: e.target.value };
@@ -93,7 +94,7 @@ export default function OptionsNode({ id, data }: any) {
           <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
             <button onClick={save} style={primaryBtn}>Salvar</button>
             <button onClick={cancel} style={ghostBtn}>Cancelar</button>
-            <button onClick={() => setOptions([...(options || []), { id: `${Date.now()}`, label: "Opção" }])} style={ghostBtn}>+ Opção</button>
+            <button onClick={() => setOptions([...(options || []), { id: `${Date.now()}`, label: "" }])} style={ghostBtn}>+ Opção</button>
           </div>
         )}
       </div>

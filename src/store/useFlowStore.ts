@@ -12,6 +12,7 @@ type FlowState = {
   selectedId: string | null;
   setSelected: (id: string | null) => void;
   updateEdgeLabel: (edgeId: string, newLabel: string) => void;
+  updateEdgeData: (edgeId: string, partial: Record<string, any>) => void;
   updateNodeData: (nodeId: string, data: Record<string, any>) => void;
   saveFlow: () => void;
   loadFlow: () => { ok: boolean; message: string };
@@ -35,6 +36,12 @@ export const useFlowStore = create<FlowState>((set) => ({
   updateNodeData: (nodeId, data) =>
     set((s) => ({
       nodes: s.nodes.map((n) => (n.id === nodeId ? { ...n, data: { ...(n.data || {}), ...data } } : n)),
+    })),
+  updateEdgeData: (edgeId, partial) =>
+    set((s) => ({
+      edges: s.edges.map((e) =>
+        e.id === edgeId ? { ...e, data: { ...(e.data || {}), ...partial } } : e
+      ),
     })),
   saveFlow: () =>
     set((s) => {

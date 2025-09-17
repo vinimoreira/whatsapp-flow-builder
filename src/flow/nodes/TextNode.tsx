@@ -2,25 +2,43 @@ import React from "react";
 import { Handle, Position } from "reactflow";
 import { useFlowStore } from "../../store/useFlowStore";
 
+type Message = { Order: number; Text: string; Type: string };
+
 export default function TextNode({ id, data }: any) {
   const { updateNodeData } = useFlowStore();
   const [isEditing, setIsEditing] = React.useState(false);
-  const [title, setTitle] = React.useState<string>(data?.title || "Texto");
-  const [description, setDescription] = React.useState<string>(data?.description || "");
+  const [title, setTitle] = React.useState<string>(data?.Description || "Texto");
+  const [messages, setMessages] = React.useState<Message[]>(Array.isArray(data?.Messages) ? data.Messages : []);
 
   React.useEffect(() => {
-    setTitle(data?.title || "Texto");
-    setDescription(data?.description || "");
-  }, [data?.title, data?.description]);
+    setTitle(data?.Description || "Texto");
+    setMessages(Array.isArray(data?.Messages) ? data.Messages : []);
+  }, [data?.Description, data?.Messages]);
 
   const save = () => {
-    updateNodeData(id, { title, description });
+    // Also update the main 'title' for the node from the Description field
+    updateNodeData(id, { Description: title, title: title, Messages: messages });
     setIsEditing(false);
   };
   const cancel = () => {
-    setTitle(data?.title || "Texto");
-    setDescription(data?.description || "");
+    setTitle(data?.Description || "Texto");
+    setMessages(Array.isArray(data?.Messages) ? data.Messages : []);
     setIsEditing(false);
+  };
+
+  const handleMessageChange = (index: number, newText: string) => {
+    const newMessages = messages.slice();
+    newMessages[index] = { ...newMessages[index], Text: newText };
+    setMessages(newMessages);
+  };
+
+  const addMessage = () => {
+    const newOrder = messages.length > 0 ? Math.max(...messages.map(m => m.Order)) + 1 : 1;
+    setMessages([...messages, { Order: newOrder, Text: "", Type: "text" }]);
+  };
+
+  const removeMessage = (index: number) => {
+    setMessages(messages.filter((_, i) => i !== index));
   };
 
   return (
@@ -33,11 +51,11 @@ export default function TextNode({ id, data }: any) {
           border: "1px solid #e5e7eb",
           borderRadius: 12,
           padding: 10,
-          minWidth: 220,
+          minWidth: 240,
           boxShadow: "0 1px 2px rgba(0,0,0,0.04)",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8, paddingBottom: 6, borderBottom: '1px solid #f3f4f6' }}>
           <span role="img" aria-label="text" style={{ fontSize: 14 }}>💬</span>
           {!isEditing ? (
             <strong style={{ fontSize: 13 }}>{data?.title || "Texto"}</strong>
@@ -46,7 +64,7 @@ export default function TextNode({ id, data }: any) {
               autoFocus
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Título"
+              placeholder="Título do Passo"
               style={{ flex: 1, fontSize: 13, border: "1px solid #d1d5db", borderRadius: 6, padding: "4px 6px" }}
             />
           )}
@@ -54,23 +72,37 @@ export default function TextNode({ id, data }: any) {
             <button onClick={() => setIsEditing(true)} title="Editar" style={iconBtn}>✏️</button>
           )}
         </div>
-        {!isEditing ? (
-          data?.description ? (
-            <div style={{ fontSize: 12, color: "#374151" }}>{String(data.description)}</div>
-          ) : null
-        ) : (
-          <textarea
-            rows={3}
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Descrição / Mensagem"
-            style={{ width: "100%", fontSize: 12, border: "1px solid #d1d5db", borderRadius: 6, padding: "6px 8px" }}
-          />
-        )}
+
+        <div style={{ display: "grid", gap: 6 }}>
+          {(!messages || messages.length === 0) && !isEditing && (
+            <div style={{ fontSize: 12, color: "#6b7280" }}>Sem mensagens definidas</div>
+          )}
+
+          {!isEditing ? (
+            messages.map((msg, idx) => (
+              <div key={idx} style={{ fontSize: 12, color: "#374151", background: '#f9fafb', padding: '6px 8px', borderRadius: 6 }}>{msg.Text}</div>
+            ))
+          ) : (
+            messages.map((msg, idx) => (
+              <div key={idx}>
+                <textarea
+                  rows={2}
+                  value={msg.Text}
+                  onChange={(e) => handleMessageChange(idx, e.target.value)}
+                  placeholder="Escreva a mensagem..."
+                  style={{ width: "100%", boxSizing: 'border-box', fontSize: 12, border: "1px solid #d1d5db", borderRadius: 6, padding: "6px 8px" }}
+                />
+                <button onClick={() => removeMessage(idx)} style={{...ghostBtn, fontSize: 11, padding: '2px 6px', marginTop: 4}}>Remover</button>
+              </div>
+            ))
+          )}
+        </div>
+
         {isEditing && (
-          <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+          <div style={{ display: "flex", gap: 8, marginTop: 8, paddingTop: 8, borderTop: '1px solid #f3f4f6' }}>
             <button onClick={save} style={primaryBtn}>Salvar</button>
             <button onClick={cancel} style={ghostBtn}>Cancelar</button>
+            <button onClick={addMessage} style={{...ghostBtn, marginLeft: 'auto'}}>+ Mensagem</button>
           </div>
         )}
       </div>

@@ -1,5 +1,8 @@
 import React from "react";
 import { useFlowStore } from "../store/useFlowStore";
+import { conditionsSummary } from "../types/conditions";
+import type { Condition } from "../types/conditions";
+import { ConditionBuilder } from "./edges/ConditionBuilder";
 
 type Props = {
   id: string;
@@ -8,18 +11,27 @@ type Props = {
 };
 
 export default function EdgeLabelInline({ id, text, warning }: Props) {
-  const { nodes, edges, setNodes, setEdges, updateEdgeLabel } = useFlowStore();
+  const { nodes, edges, setNodes, setEdges, updateEdgeLabel, updateEdgeData } = useFlowStore();
   const [editing, setEditing] = React.useState(false);
   const [value, setValue] = React.useState(text);
   const prev = React.useRef(text);
   const [menuOpen, setMenuOpen] = React.useState(false);
+  const [isEditingConditions, setIsEditingConditions] = React.useState(false);
+
+  const edge = edges.find((e) => e.id === id);
+  const conditions = edge?.data?.conditions;
+  const hasConditions = !!(conditions && Array.isArray(conditions) && conditions.length > 0);
+
+  const labelToShow = hasConditions ? conditionsSummary(conditions) : text;
+  const canEdit = !hasConditions;
 
   React.useEffect(() => {
-    setValue(text);
-    prev.current = text;
-  }, [text]);
+    setValue(labelToShow);
+    prev.current = labelToShow;
+  }, [labelToShow]);
 
   const startEdit = (e: React.MouseEvent) => {
+    if (!canEdit) return;
     e.stopPropagation();
     setEditing(true);
   };
@@ -38,6 +50,10 @@ export default function EdgeLabelInline({ id, text, warning }: Props) {
   const cancel = () => {
     setValue(prev.current);
     setEditing(false);
+  };
+
+  const handleConditionsChange = (newConditions: Condition[]) => {
+    updateEdgeData(id, { conditions: newConditions });
   };
 
   if (editing) {
@@ -132,12 +148,12 @@ export default function EdgeLabelInline({ id, text, warning }: Props) {
   ];
 
   return (
-    <span style={{ display: "inline-flex", alignItems: "center", gap: 6, position: "relative" }}>
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 4, position: "relative" }}>
       <span
         onDoubleClick={startEdit}
-        title={warning ? "Label inconsistente" : undefined}
+        title={warning ? "Label inconsistente" : (hasConditions ? "Condições aplicadas" : "Duplo clique para editar")}
         style={{
-          cursor: "text",
+          cursor: canEdit ? "text" : "default",
           fontSize: 12,
           padding: "2px 6px",
           borderRadius: 6,
@@ -150,8 +166,15 @@ export default function EdgeLabelInline({ id, text, warning }: Props) {
         }}
       >
         {warning && <span>⚠</span>}
-        {text}
+        {labelToShow}
       </span>
+      <button
+        onClick={(e) => { e.stopPropagation(); setIsEditingConditions(true); }}
+        title="Editar condições"
+        style={{ fontSize: 12, padding: "2px", width: 20, height: 20, borderRadius: 6, border: "1px solid #e5e7eb", background: "#fff", cursor: "pointer", display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+      >
+        ⚙️
+      </button>
       <button
         onClick={(e) => { e.stopPropagation(); setMenuOpen((v) => !v); }}
         title="Inserir nó"
@@ -187,7 +210,13 @@ export default function EdgeLabelInline({ id, text, warning }: Props) {
           ))}
         </div>
       )}
+      {isEditingConditions && (
+        <ConditionBuilder
+          initialConditions={conditions || []}
+          onChange={handleConditionsChange}
+          onClose={() => setIsEditingConditions(false)}
+        />
+      )}
     </span>
   );
 }
-
