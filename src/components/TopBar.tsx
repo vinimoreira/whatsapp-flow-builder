@@ -6,7 +6,7 @@ import { flowSchema } from "../utils/schemas";
 import { fromBackendFlowJson } from "../flow/importers/fromBackendFlowJson";
 
 export default function TopBar() {
-  const { saveFlow, loadFlow, autoSave, setAutoSave, nodes, edges, setNodes, setEdges } = useFlowStore();
+  const { saveFlow, autoSave, setAutoSave, nodes, edges, setNodes, setEdges } = useFlowStore();
   const [exportOpen, setExportOpen] = React.useState(false);
   const [exportText, setExportText] = React.useState<string>("");
   const [validationOpen, setValidationOpen] = React.useState(false);
@@ -393,8 +393,8 @@ export default function TopBar() {
     try {
       // The importer function handles JSONC parsing internally
       const { nodes, edges, meta } = fromBackendFlowJson(importText);
-      setNodes(nodes);
-      setEdges(edges);
+      setNodes(nodes as any);
+      setEdges(edges as any);
       if (meta.warnings && meta.warnings.length > 0) {
         alert("Avisos durante a importação:\n- " + meta.warnings.join("\n- "));
       }

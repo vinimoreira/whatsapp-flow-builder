@@ -1,4 +1,3 @@
-import React from "react";
 import { Handle, Position } from "reactflow";
 
 export default function EndConversationNode({ data }: any) {
@@ -24,4 +23,3 @@ export default function EndConversationNode({ data }: any) {
     </div>
   );
 }
-

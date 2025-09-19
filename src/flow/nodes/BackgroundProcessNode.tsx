@@ -1,7 +1,6 @@
 import React from "react";
 import { Handle, Position } from "reactflow";
 import { useFlowStore } from "../../store/useFlowStore";
-import type { Condition } from "../../types/conditions";
 import { conditionsSummary } from "../../types/conditions";
 import NextFlowEditor, { type NextFlowItem } from "../../components/NextFlowEditor";
 

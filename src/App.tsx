@@ -1,4 +1,3 @@
-import React from "react";
 import FlowCanvasWrapper from "./flow/FlowCanvasWrapper";
 import TopBar from "./components/TopBar";
 import LeftPalette from "./flow/LeftPalette";

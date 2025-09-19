@@ -32,7 +32,7 @@ export default function MessagesBlock({ editing, messages, onChange, emptyHint =
       )}
 
       {!editing ? (
-        (messages || []).map((msg, idx) => (
+        (messages || []).map((msg) => (
           <div key={msg.Order} style={{ fontSize: 12, color: "#374151", background: "#f9fafb", padding: "6px 8px", borderRadius: 6 }}>
             {msg.Text}
           </div>
@@ -76,4 +76,3 @@ const ghostBtnSmall: React.CSSProperties = {
   padding: "2px 6px",
   marginTop: 4,
 };
-

@@ -60,7 +60,7 @@ export function fromBackendFlowJson(jsoncText: string): { nodes: Node[]; edges: 
   }
 
   // Map steps to nodes
-  const nodes: Node[] = backendFlow.map((step, index) => {
+  const nodes: Node[] = (backendFlow.map((step, index) => {
     const nodeType = typeMap[step.Type];
     if (!nodeType) {
       warnings.push(`Passo ${step.Id} tem um tipo desconhecido (${step.Type}) e será ignorado.`);
@@ -92,7 +92,7 @@ export function fromBackendFlowJson(jsoncText: string): { nodes: Node[]; edges: 
       position: getPosition(index),
       data: nodeData,
     };
-  }).filter((n): n is Node => n !== null);
+  }) as Array<Node | null>).filter((n) => n !== null) as unknown as Node[];
 
   // Map NextFlow to edges
   const edges: Edge[] = [];

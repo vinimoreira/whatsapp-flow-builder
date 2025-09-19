@@ -32,9 +32,7 @@ function TextInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
   return <input {...props} style={{ ...props.style, border: "1px solid #d1d5db", borderRadius: 6, padding: "6px 8px", fontSize: 13 }} />;
 }
 
-function TextArea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
-  return <textarea {...props} style={{ ...props.style, border: "1px solid #d1d5db", borderRadius: 6, padding: "6px 8px", fontSize: 13, fontFamily: "inherit" }} />;
-}
+// (TextArea removido)
 
 function EdgeEditor({ edge }: { edge: any }) {
   return (
@@ -52,49 +50,7 @@ function EdgeEditor({ edge }: { edge: any }) {
   );
 }
 
-function MessagesEditor({
-  messages,
-  onChange,
-}: {
-  messages: Array<{ Order: number; Text: string; Type: string }>;
-  onChange: (newMessages: Array<{ Order: number; Text: string; Type: string }>) => void;
-}) {
-  const handleTextChange = (index: number, newText: string) => {
-    const newMessages = messages.slice();
-    newMessages[index] = { ...newMessages[index], Text: newText };
-    onChange(newMessages);
-  };
-
-  const addMessage = () => {
-    const newOrder = messages.length > 0 ? Math.max(...messages.map(m => m.Order)) + 1 : 1;
-    onChange([...(messages || []), { Order: newOrder, Text: "Nova mensagem", Type: "text" }]);
-  };
-
-  const removeMessage = (index: number) => {
-    onChange(messages.filter((_, i) => i !== index));
-  };
-
-  return (
-    <div style={{ marginBottom: 10 }}>
-      <div style={{ marginBottom: 8, fontWeight: 600, fontSize: 13 }}>Mensagens</div>
-      {(messages || []).map((msg, idx) => (
-        <div key={idx} style={{ marginBottom: 8, padding: 8, border: '1px solid #e5e7eb', borderRadius: 6, background: '#fff' }}>
-          <Field label={`Texto (Ordem: ${msg.Order})`}>
-            <TextArea
-              rows={3}
-              value={msg.Text || ""}
-              onChange={(e) => handleTextChange(idx, e.target.value)}
-            />
-          </Field>
-          <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
-            <button onClick={() => removeMessage(idx)} style={btnStyle}>Remover</button>
-          </div>
-        </div>
-      ))}
-      <button onClick={addMessage} style={btnPrimary}>Adicionar mensagem</button>
-    </div>
-  );
-}
+// (removido MessagesEditor não utilizado)
 
 function NodeEditor({ node, onChange }: { node: any; onChange: (id: string, data: Record<string, any>) => void }) {
   const [local, setLocal] = React.useState<Record<string, any>>(node.data || {});
@@ -113,28 +69,7 @@ function NodeEditor({ node, onChange }: { node: any; onChange: (id: string, data
     setData({ Description: e.target.value, title: e.target.value });
   }
 
-  // Render a generic editor for any imported node type
-  const renderGenericEditor = () => (
-    <div>
-      <Field label="ID do Passo">
-        <TextInput readOnly disabled value={local.Id || node.id} />
-      </Field>
-      <Field label="Descrição (Título)">
-        <TextInput value={local.Description || ""} onChange={handleDescriptionChange} />
-      </Field>
-
-      {Array.isArray(local.Messages) && (
-        <MessagesEditor
-          messages={local.Messages}
-          onChange={(newMessages) => setData({ Messages: newMessages })}
-        />
-      )}
-
-      {/* Placeholder for other editors */}
-      {Array.isArray(local.Failures) && <div style={{fontSize: 12, color: '#999', margin: '10px 0'}}>[Editor de Falhas (Failures) não implementado]</div>}
-      {local.RequestContent && <div style={{fontSize: 12, color: '#999', margin: '10px 0'}}>[Editor de Requisição (RequestContent) não implementado]</div>}
-    </div>
-  );
+  // (removido renderGenericEditor não utilizado)
 
   switch (node.type) {
     case 'text':
@@ -166,5 +101,4 @@ function NodeEditor({ node, onChange }: { node: any; onChange: (id: string, data
   }
 }
 
-const btnStyle: React.CSSProperties = { border: "1px solid #d1d5db", borderRadius: 6, padding: "6px 8px", fontSize: 12, background: "#fff", cursor: "pointer" };
-const btnPrimary: React.CSSProperties = { ...btnStyle, background: "#EEF2FF", borderColor: "#CBD5E1" };
+// (estilos de botões não utilizados removidos)

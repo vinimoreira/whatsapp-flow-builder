@@ -37,7 +37,7 @@ export default function FlowCanvas() {
 
   const onNodesChange = React.useCallback(
     (changes: NodeChange[]) => {
-      setNodes((nds) => applyNodeChanges(changes, nds));
+      setNodes((nds) => applyNodeChanges(changes, nds) as any);
     },
     [setNodes]
   );
