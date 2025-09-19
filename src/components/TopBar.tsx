@@ -422,7 +422,6 @@ export default function TopBar() {
       <div style={{ display: "flex", alignItems: "center", gap: 8, padding: 8, borderBottom: "1px solid #eee" }}>
         <button onClick={() => { if (confirm("Iniciar um novo fluxo? Isso limpará nós e conexões.")) { setNodes([] as any); setEdges([] as any); } }} style={btnPrimary}>🆕 Novo</button>
         <button onClick={() => { saveFlow(); alert("Fluxo salvo."); }} style={btnPrimary}>💾 Salvar</button>
-        <button onClick={() => { const res = loadFlow(); alert(res.message); }} style={btnPrimary}>📂 Carregar</button>
         <button onClick={onOpenImportModal} style={btnPrimary}>📥 Importar JSON</button>
         <button onClick={onExport} style={btnPrimary}>📤 Exportar JSON</button>
         <label style={{ marginLeft: 8, fontSize: 12, color: "#374151", display: "inline-flex", alignItems: "center", gap: 6 }}>
