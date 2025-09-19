@@ -1,9 +1,18 @@
 import React from "react";
 import { Handle, Position } from "reactflow";
 import { useFlowStore } from "../../store/useFlowStore";
+import type { Condition } from "../../types/conditions";
+import { conditionsSummary } from "../../types/conditions";
+import { ConditionBuilder } from "../edges/ConditionBuilder";
+
+type NextFlowOption = {
+  id: string; // local uid for UI list
+  targetId: string | null;
+  conditions: Condition[];
+};
 
 export default function BackgroundProcessNode({ id, data }: any) {
-  const { updateNodeData } = useFlowStore();
+  const { updateNodeData, nodes, edges, setEdges } = useFlowStore();
   const [isEditing, setIsEditing] = React.useState(false);
   const [local, setLocal] = React.useState<Record<string, any>>({
     title: data?.title || "Processo",
@@ -16,6 +25,8 @@ export default function BackgroundProcessNode({ id, data }: any) {
     responseContent: data?.responseContent || {},
     startup: !!data?.startup,
   });
+  const [nextFlow, setNextFlow] = React.useState<NextFlowOption[]>([]);
+  const [editingCondIndex, setEditingCondIndex] = React.useState<number | null>(null);
 
   React.useEffect(() => {
     setLocal({
@@ -29,10 +40,34 @@ export default function BackgroundProcessNode({ id, data }: any) {
       responseContent: data?.responseContent || {},
       startup: !!data?.startup,
     });
-  }, [data]);
+    // Refresh NextFlow view from current outgoing edges
+    const outgoing = edges.filter((e) => e.source === id);
+    const mapped: NextFlowOption[] = outgoing.map((e) => ({
+      id: e.id,
+      targetId: e.target,
+      conditions: Array.isArray((e as any).data?.conditions) ? (e as any).data.conditions : [],
+    }));
+    setNextFlow(mapped);
+  }, [data, edges, id]);
 
   const setField = (k: string, v: any) => setLocal((s) => ({ ...s, [k]: v }));
-  const save = () => { updateNodeData(id, local); setIsEditing(false); };
+  const save = () => {
+    updateNodeData(id, local);
+    // Sync NextFlow with edges: replace all outgoing edges by nextFlow items
+    const freshEdges = edges.filter((e) => e.source !== id);
+    const toAdd = nextFlow
+      .filter((opt) => !!opt.targetId)
+      .map((opt) => ({
+        id: `${id}-${opt.targetId}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        source: id,
+        target: String(opt.targetId),
+        type: "smoothstep",
+        label: (conditionsSummary(opt.conditions) || "next"),
+        data: { conditions: opt.conditions },
+      } as any));
+    setEdges([...freshEdges, ...toAdd]);
+    setIsEditing(false);
+  };
   const cancel = () => { setIsEditing(false); setLocal({
     title: data?.title || "Processo",
     description: data?.description || "",
@@ -43,7 +78,16 @@ export default function BackgroundProcessNode({ id, data }: any) {
     requestContent: data?.requestContent || {},
     responseContent: data?.responseContent || {},
     startup: !!data?.startup,
-  }); };
+  });
+  // Reset NextFlow from edges as well
+  const outgoing = edges.filter((e) => e.source === id);
+  const mapped: NextFlowOption[] = outgoing.map((e) => ({
+    id: e.id,
+    targetId: e.target,
+    conditions: Array.isArray((e as any).data?.conditions) ? (e as any).data.conditions : [],
+  }));
+  setNextFlow(mapped);
+ };
 
   const jsonStr = (v: any) => {
     try { return JSON.stringify(v ?? {}, null, 2); } catch { return "{}"; }
@@ -88,6 +132,72 @@ export default function BackgroundProcessNode({ id, data }: any) {
             <textarea rows={3} defaultValue={jsonStr(local.requestContent)} onBlur={(e) => { const val = parseJson(e.target.value); if (val) setField("requestContent", val); }} style={textarea} />
             <div style={{ fontSize: 12, color: "#374151" }}>responseContent</div>
             <textarea rows={3} defaultValue={jsonStr(local.responseContent)} onBlur={(e) => { const val = parseJson(e.target.value); if (val) setField("responseContent", val); }} style={textarea} />
+            <div style={{ fontSize: 12, color: "#111", marginTop: 4, borderTop: '1px solid #eee', paddingTop: 8 }}>
+              <div style={{ fontWeight: 600, marginBottom: 6 }}>Transições (NextFlow)</div>
+              {nextFlow.length === 0 && (
+                <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 8 }}>Sem transições. Adicione ao menos uma opção.</div>
+              )}
+              <div style={{ display: 'grid', gap: 8 }}>
+                {nextFlow.map((opt, idx) => (
+                  <div key={opt.id || idx} style={{ border: '1px solid #e5e7eb', borderRadius: 8, padding: 8, background: '#f9fafb' }}>
+                    <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                      <span style={{ fontSize: 12, color: '#374151', minWidth: 70 }}>Destino:</span>
+                      <select
+                        value={opt.targetId ?? ''}
+                        onChange={(e) => {
+                          const v = e.target.value || null;
+                          setNextFlow((prev) => prev.map((o, i) => i === idx ? { ...o, targetId: v } : o));
+                        }}
+                        style={{ flex: 1, fontSize: 12, border: '1px solid #d1d5db', borderRadius: 6, padding: '4px 6px' }}
+                      >
+                        <option value="">— selecione —</option>
+                        {nodes
+                          .filter((n) => n.id !== id)
+                          .map((n) => (
+                            <option key={n.id} value={n.id}>
+                              {n.id} — {String((n.data as any)?.title || n.type)}
+                            </option>
+                          ))}
+                      </select>
+                      <button
+                        onClick={() => setEditingCondIndex(idx)}
+                        title="Editar condições"
+                        style={{ fontSize: 12, padding: '4px 6px', borderRadius: 6, border: '1px solid #d1d5db', background: '#fff', cursor: 'pointer' }}
+                      >
+                        Condições…
+                      </button>
+                      <button
+                        onClick={() => setNextFlow((prev) => prev.filter((_, i) => i !== idx))}
+                        title="Remover"
+                        style={{ fontSize: 12, padding: '4px 6px', borderRadius: 6, border: '1px solid #ef4444', color: '#ef4444', background: '#fff', cursor: 'pointer' }}
+                      >
+                        Remover
+                      </button>
+                    </div>
+                    <div style={{ marginTop: 6, fontSize: 11, color: '#6b7280' }}>
+                      {conditionsSummary(opt.conditions) || 'Sempre'}
+                    </div>
+                    {editingCondIndex === idx && (
+                      <ConditionBuilder
+                        initialConditions={opt.conditions}
+                        onChange={(newConds) => {
+                          setNextFlow((prev) => prev.map((o, i) => (i === idx ? { ...o, conditions: newConds } : o)));
+                        }}
+                        onClose={() => setEditingCondIndex(null)}
+                      />
+                    )}
+                  </div>
+                ))}
+              </div>
+              <div style={{ marginTop: 8 }}>
+                <button
+                  onClick={() => setNextFlow((prev) => ([...prev, { id: `${Date.now()}-${Math.random().toString(36).slice(2,6)}`, targetId: null, conditions: [] }]))}
+                  style={{ fontSize: 12, padding: '6px 8px', borderRadius: 6, border: '1px solid #3b82f6', background: '#eff6ff', color: '#2563eb', cursor: 'pointer' }}
+                >
+                  + Adicionar opção
+                </button>
+              </div>
+            </div>
             <div style={{ display: "flex", gap: 8 }}>
               <button onClick={save} style={primaryBtn}>Salvar</button>
               <button onClick={cancel} style={ghostBtn}>Cancelar</button>
