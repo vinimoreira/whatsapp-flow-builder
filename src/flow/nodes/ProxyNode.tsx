@@ -1,22 +1,62 @@
 import React from "react";
 import { Handle, Position } from "reactflow";
 import { useFlowStore } from "../../store/useFlowStore";
+import NextFlowEditor, { type NextFlowItem } from "../../components/NextFlowEditor";
+import { conditionsSummary } from "../../types/conditions";
 
 export default function ProxyNode({ id, data }: any) {
-  const { updateNodeData } = useFlowStore();
+  const { updateNodeData, edges, setEdges, nodes } = useFlowStore();
   const [isEditing, setIsEditing] = React.useState(false);
   const [title, setTitle] = React.useState<string>(data?.title || "Proxy");
   const [endpoint, setEndpoint] = React.useState<string>(String(data?.endpoint || ""));
   const [method, setMethod] = React.useState<string>(String(data?.method || "GET"));
+  const [nextFlow, setNextFlow] = React.useState<NextFlowItem[]>([]);
 
   React.useEffect(() => {
     setTitle(data?.title || "Proxy");
     setEndpoint(String(data?.endpoint || ""));
     setMethod(String(data?.method || "GET"));
-  }, [data?.title, data?.endpoint, data?.method]);
+    // Refresh NextFlow view from current outgoing edges
+    const outgoing = edges.filter((e) => e.source === id);
+    const mapped: NextFlowItem[] = outgoing.map((e) => ({
+      id: e.id,
+      targetId: e.target,
+      conditions: Array.isArray((e as any).data?.conditions) ? (e as any).data.conditions : [],
+    }));
+    setNextFlow(mapped);
+  }, [data?.title, data?.endpoint, data?.method, edges, id]);
 
-  const save = () => { updateNodeData(id, { title, endpoint, method }); setIsEditing(false); };
-  const cancel = () => { setTitle(data?.title || "Proxy"); setEndpoint(String(data?.endpoint || "")); setMethod(String(data?.method || "GET")); setIsEditing(false); };
+  const save = () => {
+    updateNodeData(id, { title, endpoint, method });
+    // Sync NextFlow edges
+    const freshEdges = edges.filter((e) => e.source !== id);
+    const toAdd = nextFlow
+      .filter((opt) => !!opt.targetId)
+      .map((opt) => ({
+        id: opt.id || `${id}-${opt.targetId}`,
+        source: id,
+        target: String(opt.targetId),
+        type: "smoothstep",
+        label: conditionsSummary(opt.conditions) || "next",
+        data: { conditions: opt.conditions },
+      } as any));
+    setEdges([...freshEdges, ...toAdd]);
+    setIsEditing(false);
+  };
+  const cancel = () => {
+    setTitle(data?.title || "Proxy");
+    setEndpoint(String(data?.endpoint || ""));
+    setMethod(String(data?.method || "GET"));
+    // Reset NextFlow from edges as well
+    const outgoing = edges.filter((e) => e.source === id);
+    const mapped: NextFlowItem[] = outgoing.map((e) => ({
+      id: e.id,
+      targetId: e.target,
+      conditions: Array.isArray((e as any).data?.conditions) ? (e as any).data.conditions : [],
+    }));
+    setNextFlow(mapped);
+    setIsEditing(false);
+  };
 
   return (
     <div>
@@ -45,7 +85,31 @@ export default function ProxyNode({ id, data }: any) {
           {!isEditing && <button onClick={() => setIsEditing(true)} style={iconBtn}>✏️</button>}
         </div>
         {!isEditing ? (
-          endpoint && <div style={{ fontSize: 12, color: "#374151" }}>{endpoint}</div>
+          <div style={{ display: 'grid', gap: 8 }}>
+            {endpoint && <div style={{ fontSize: 12, color: "#374151" }}>{endpoint}</div>}
+            {/* View list of current nextFlow options */}
+            <div>
+              {nextFlow.length === 0 ? (
+                <div style={{ fontSize: 12, color: "#6b7280" }}>Sem transições definidas</div>
+              ) : (
+                <div style={{ display: "grid", gap: 6 }}>
+                  {nextFlow.map((opt) => {
+                    const tgt = nodes.find((n: any) => n.id === opt.targetId);
+                    const title = tgt ? `${tgt.id} — ${String((tgt.data as any)?.title || tgt.type)}` : (opt.targetId || '—');
+                    return (
+                      <div key={opt.id} style={{ position: "relative", padding: "6px 8px", border: "1px solid #e5e7eb", borderRadius: 8, background: "#f9fafb", display: "flex", flexDirection: 'column', gap: 4 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <span style={{ fontSize: 12, color: '#374151' }}>Destino:</span>
+                          <span style={{ fontSize: 12, color: '#111' }}>{title}</span>
+                        </div>
+                        <div style={{ fontSize: 11, color: '#6b7280' }}>{conditionsSummary(opt.conditions) || 'Sempre'}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
         ) : (
           <div style={{ display: "grid", gap: 6 }}>
             <input value={endpoint} onChange={(e) => setEndpoint(e.target.value)} placeholder="Endpoint" style={input} />
@@ -55,6 +119,8 @@ export default function ProxyNode({ id, data }: any) {
               <option>PUT</option>
               <option>DELETE</option>
             </select>
+            {/* NextFlow editor */}
+            <NextFlowEditor items={nextFlow} onItemsChange={setNextFlow} nodes={nodes as any} currentId={id} />
             <div style={{ display: "flex", gap: 8 }}>
               <button onClick={save} style={primaryBtn}>Salvar</button>
               <button onClick={cancel} style={ghostBtn}>Cancelar</button>

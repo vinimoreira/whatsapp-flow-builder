@@ -1,6 +1,7 @@
 import React from "react";
 import { Handle, Position } from "reactflow";
 import { useFlowStore } from "../../store/useFlowStore";
+import MessagesBlock, { type Message } from "../../components/MessagesBlock";
 
 type Option = { id: string; label: string };
 
@@ -9,19 +10,22 @@ export default function OptionsNode({ id, data }: any) {
   const [isEditing, setIsEditing] = React.useState(false);
   const [title, setTitle] = React.useState<string>(data?.title || "Opções");
   const [options, setOptions] = React.useState<Option[]>(Array.isArray(data?.options) ? data.options : []);
+  const [messages, setMessages] = React.useState<Message[]>(Array.isArray(data?.Messages) ? data.Messages : []);
 
   React.useEffect(() => {
     setTitle(data?.title || "Opções");
     setOptions(Array.isArray(data?.options) ? data.options : []);
-  }, [data?.title, data?.options]);
+    setMessages(Array.isArray(data?.Messages) ? data.Messages : []);
+  }, [data?.title, data?.options, data?.Messages]);
 
   const save = () => {
-    updateNodeData(id, { title, options });
+    updateNodeData(id, { title, options, Messages: messages });
     setIsEditing(false);
   };
   const cancel = () => {
     setTitle(data?.title || "Opções");
     setOptions(Array.isArray(data?.options) ? data.options : []);
+    setMessages(Array.isArray(data?.Messages) ? data.Messages : []);
     setIsEditing(false);
   };
 
@@ -57,6 +61,9 @@ export default function OptionsNode({ id, data }: any) {
           )}
         </div>
         <div style={{ display: "grid", gap: 6 }}>
+          {/* Messages section */}
+          <MessagesBlock editing={isEditing} messages={messages} onChange={setMessages} />
+
           {(!options || options.length === 0) && !isEditing && (
             <div style={{ fontSize: 12, color: "#6b7280" }}>Sem opções definidas</div>
           )}

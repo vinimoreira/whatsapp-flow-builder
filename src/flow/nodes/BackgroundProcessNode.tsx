@@ -3,13 +3,9 @@ import { Handle, Position } from "reactflow";
 import { useFlowStore } from "../../store/useFlowStore";
 import type { Condition } from "../../types/conditions";
 import { conditionsSummary } from "../../types/conditions";
-import { ConditionBuilder } from "../edges/ConditionBuilder";
+import NextFlowEditor, { type NextFlowItem } from "../../components/NextFlowEditor";
 
-type NextFlowOption = {
-  id: string; // local uid for UI list
-  targetId: string | null;
-  conditions: Condition[];
-};
+type NextFlowOption = NextFlowItem;
 
 export default function BackgroundProcessNode({ id, data }: any) {
   const { updateNodeData, nodes, edges, setEdges } = useFlowStore();
@@ -26,7 +22,7 @@ export default function BackgroundProcessNode({ id, data }: any) {
     startup: !!data?.startup,
   });
   const [nextFlow, setNextFlow] = React.useState<NextFlowOption[]>([]);
-  const [editingCondIndex, setEditingCondIndex] = React.useState<number | null>(null);
+  // NextFlowEditor manages the inline condition modal state
 
   React.useEffect(() => {
     setLocal({
@@ -118,7 +114,32 @@ export default function BackgroundProcessNode({ id, data }: any) {
           {!isEditing && <button onClick={() => setIsEditing(true)} style={iconBtn}>✏️</button>}
         </div>
         {!isEditing ? (
-          data?.description && <div style={{ marginTop: 6, fontSize: 12, color: "#374151" }}>{String(data.description)}</div>
+          <div style={{ display: 'grid', gap: 8 }}>
+            {data?.description && (
+              <div style={{ marginTop: 6, fontSize: 12, color: "#374151" }}>{String(data.description)}</div>
+            )}
+            <div>
+              {nextFlow.length === 0 ? (
+                <div style={{ fontSize: 12, color: "#6b7280" }}>Sem transições definidas</div>
+              ) : (
+                <div style={{ display: "grid", gap: 6 }}>
+                  {nextFlow.map((opt) => {
+                    const tgt = nodes.find((n) => n.id === opt.targetId);
+                    const title = tgt ? `${tgt.id} — ${String((tgt.data as any)?.title || tgt.type)}` : (opt.targetId || '—');
+                    return (
+                      <div key={opt.id} style={{ position: "relative", padding: "6px 8px", border: "1px solid #e5e7eb", borderRadius: 8, background: "#f9fafb", display: "flex", flexDirection: 'column', gap: 4 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <span style={{ fontSize: 12, color: '#374151' }}>Destino:</span>
+                          <span style={{ fontSize: 12, color: '#111' }}>{title}</span>
+                        </div>
+                        <div style={{ fontSize: 11, color: '#6b7280' }}>{conditionsSummary(opt.conditions) || 'Sempre'}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
         ) : (
           <div style={{ display: "grid", gap: 6, marginTop: 8 }}>
             <textarea rows={2} value={local.description} onChange={(e) => setField("description", e.target.value)} placeholder="Descrição" style={textarea} />
@@ -132,72 +153,7 @@ export default function BackgroundProcessNode({ id, data }: any) {
             <textarea rows={3} defaultValue={jsonStr(local.requestContent)} onBlur={(e) => { const val = parseJson(e.target.value); if (val) setField("requestContent", val); }} style={textarea} />
             <div style={{ fontSize: 12, color: "#374151" }}>responseContent</div>
             <textarea rows={3} defaultValue={jsonStr(local.responseContent)} onBlur={(e) => { const val = parseJson(e.target.value); if (val) setField("responseContent", val); }} style={textarea} />
-            <div style={{ fontSize: 12, color: "#111", marginTop: 4, borderTop: '1px solid #eee', paddingTop: 8 }}>
-              <div style={{ fontWeight: 600, marginBottom: 6 }}>Transições (NextFlow)</div>
-              {nextFlow.length === 0 && (
-                <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 8 }}>Sem transições. Adicione ao menos uma opção.</div>
-              )}
-              <div style={{ display: 'grid', gap: 8 }}>
-                {nextFlow.map((opt, idx) => (
-                  <div key={opt.id || idx} style={{ border: '1px solid #e5e7eb', borderRadius: 8, padding: 8, background: '#f9fafb' }}>
-                    <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                      <span style={{ fontSize: 12, color: '#374151', minWidth: 70 }}>Destino:</span>
-                      <select
-                        value={opt.targetId ?? ''}
-                        onChange={(e) => {
-                          const v = e.target.value || null;
-                          setNextFlow((prev) => prev.map((o, i) => i === idx ? { ...o, targetId: v } : o));
-                        }}
-                        style={{ flex: 1, fontSize: 12, border: '1px solid #d1d5db', borderRadius: 6, padding: '4px 6px' }}
-                      >
-                        <option value="">— selecione —</option>
-                        {nodes
-                          .filter((n) => n.id !== id)
-                          .map((n) => (
-                            <option key={n.id} value={n.id}>
-                              {n.id} — {String((n.data as any)?.title || n.type)}
-                            </option>
-                          ))}
-                      </select>
-                      <button
-                        onClick={() => setEditingCondIndex(idx)}
-                        title="Editar condições"
-                        style={{ fontSize: 12, padding: '4px 6px', borderRadius: 6, border: '1px solid #d1d5db', background: '#fff', cursor: 'pointer' }}
-                      >
-                        Condições…
-                      </button>
-                      <button
-                        onClick={() => setNextFlow((prev) => prev.filter((_, i) => i !== idx))}
-                        title="Remover"
-                        style={{ fontSize: 12, padding: '4px 6px', borderRadius: 6, border: '1px solid #ef4444', color: '#ef4444', background: '#fff', cursor: 'pointer' }}
-                      >
-                        Remover
-                      </button>
-                    </div>
-                    <div style={{ marginTop: 6, fontSize: 11, color: '#6b7280' }}>
-                      {conditionsSummary(opt.conditions) || 'Sempre'}
-                    </div>
-                    {editingCondIndex === idx && (
-                      <ConditionBuilder
-                        initialConditions={opt.conditions}
-                        onChange={(newConds) => {
-                          setNextFlow((prev) => prev.map((o, i) => (i === idx ? { ...o, conditions: newConds } : o)));
-                        }}
-                        onClose={() => setEditingCondIndex(null)}
-                      />
-                    )}
-                  </div>
-                ))}
-              </div>
-              <div style={{ marginTop: 8 }}>
-                <button
-                  onClick={() => setNextFlow((prev) => ([...prev, { id: `${Date.now()}-${Math.random().toString(36).slice(2,6)}`, targetId: null, conditions: [] }]))}
-                  style={{ fontSize: 12, padding: '6px 8px', borderRadius: 6, border: '1px solid #3b82f6', background: '#eff6ff', color: '#2563eb', cursor: 'pointer' }}
-                >
-                  + Adicionar opção
-                </button>
-              </div>
-            </div>
+            <NextFlowEditor items={nextFlow} onItemsChange={setNextFlow} nodes={nodes as any} currentId={id} />
             <div style={{ display: "flex", gap: 8 }}>
               <button onClick={save} style={primaryBtn}>Salvar</button>
               <button onClick={cancel} style={ghostBtn}>Cancelar</button>

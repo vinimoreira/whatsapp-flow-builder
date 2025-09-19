@@ -1,8 +1,7 @@
 import React from "react";
 import { Handle, Position } from "reactflow";
 import { useFlowStore } from "../../store/useFlowStore";
-
-type Message = { Order: number; Text: string; Type: string };
+import MessagesBlock, { type Message } from "../../components/MessagesBlock";
 
 export default function TextNode({ id, data }: any) {
   const { updateNodeData } = useFlowStore();
@@ -26,20 +25,7 @@ export default function TextNode({ id, data }: any) {
     setIsEditing(false);
   };
 
-  const handleMessageChange = (index: number, newText: string) => {
-    const newMessages = messages.slice();
-    newMessages[index] = { ...newMessages[index], Text: newText };
-    setMessages(newMessages);
-  };
-
-  const addMessage = () => {
-    const newOrder = messages.length > 0 ? Math.max(...messages.map(m => m.Order)) + 1 : 1;
-    setMessages([...messages, { Order: newOrder, Text: "", Type: "text" }]);
-  };
-
-  const removeMessage = (index: number) => {
-    setMessages(messages.filter((_, i) => i !== index));
-  };
+  const onMessagesChange = (list: Message[]) => setMessages(list);
 
   return (
     <div>
@@ -73,36 +59,13 @@ export default function TextNode({ id, data }: any) {
           )}
         </div>
 
-        <div style={{ display: "grid", gap: 6 }}>
-          {(!messages || messages.length === 0) && !isEditing && (
-            <div style={{ fontSize: 12, color: "#6b7280" }}>Sem mensagens definidas</div>
-          )}
-
-          {!isEditing ? (
-            messages.map((msg, idx) => (
-              <div key={idx} style={{ fontSize: 12, color: "#374151", background: '#f9fafb', padding: '6px 8px', borderRadius: 6 }}>{msg.Text}</div>
-            ))
-          ) : (
-            messages.map((msg, idx) => (
-              <div key={idx}>
-                <textarea
-                  rows={2}
-                  value={msg.Text}
-                  onChange={(e) => handleMessageChange(idx, e.target.value)}
-                  placeholder="Escreva a mensagem..."
-                  style={{ width: "100%", boxSizing: 'border-box', fontSize: 12, border: "1px solid #d1d5db", borderRadius: 6, padding: "6px 8px" }}
-                />
-                <button onClick={() => removeMessage(idx)} style={{...ghostBtn, fontSize: 11, padding: '2px 6px', marginTop: 4}}>Remover</button>
-              </div>
-            ))
-          )}
-        </div>
+        <MessagesBlock editing={isEditing} messages={messages} onChange={onMessagesChange} />
 
         {isEditing && (
           <div style={{ display: "flex", gap: 8, marginTop: 8, paddingTop: 8, borderTop: '1px solid #f3f4f6' }}>
             <button onClick={save} style={primaryBtn}>Salvar</button>
             <button onClick={cancel} style={ghostBtn}>Cancelar</button>
-            <button onClick={addMessage} style={{...ghostBtn, marginLeft: 'auto'}}>+ Mensagem</button>
+            {/* Add button is now inside MessagesBlock */}
           </div>
         )}
       </div>
